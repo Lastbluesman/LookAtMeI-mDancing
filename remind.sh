@@ -35,10 +35,14 @@ else
 fi
 
 send_message() {
-  curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-    --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
-    --data-urlencode "text=$1" \
-    --data-urlencode "parse_mode=HTML"
+  for cid in "${TELEGRAM_CHAT_ID}" "${TELEGRAM_TESTER_CHAT_ID}"; do
+    if [ -n "$cid" ]; then
+      curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+        --data-urlencode "chat_id=${cid}" \
+        --data-urlencode "text=$1" \
+        --data-urlencode "parse_mode=HTML"
+    fi
+  done
 }
 
 # Футбол сегодня
