@@ -34,6 +34,8 @@ else
   exit 0
 fi
 
+# --- Отправка ---
+
 send_message() {
   for cid in "${TELEGRAM_CHAT_ID}" "${TELEGRAM_TESTER_CHAT_ID}"; do
     if [ -n "$cid" ]; then
@@ -50,11 +52,20 @@ send_photo() {
   local caption="$2"
   for cid in "${TELEGRAM_CHAT_ID}" "${TELEGRAM_TESTER_CHAT_ID}"; do
     if [ -n "$cid" ]; then
-      curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto" \
+      local resp
+      resp=$(curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto" \
         -F "chat_id=${cid}" \
         -F "photo=${photo_url}" \
         -F "caption=${caption}" \
-        -F "parse_mode=HTML"
+        -F "parse_mode=HTML")
+      # Если фото не ушло — отправляем тот же текст без фото
+      if ! echo "$resp" | grep -q '"ok":true'; then
+        echo "sendPhoto failed for $cid, falling back to text"
+        curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+          --data-urlencode "chat_id=${cid}" \
+          --data-urlencode "text=${caption}" \
+          --data-urlencode "parse_mode=HTML" >/dev/null
+      fi
     fi
   done
 }
@@ -171,6 +182,26 @@ TIPS=(
   "💡 Мысль на вечер: завтра новый день, не тяни туда хвосты."
 )
 
+# --- Внешние данные: шутка, факт, совет (по одному разу на запуск) ---
+
+JOKE=$(curl -s --max-time 10 "https://rzhunemogu.ru/api/randjson?CType=1" \
+  | jq -r '.content // empty' 2>/dev/null || echo "")
+if [ -z "$JOKE" ]; then
+  JOKE="Шутка не загрузилась, но это тоже своего рода шутка. 😄"
+fi
+
+CAT_FACT=$(curl -s --max-time 10 "https://meowfacts.herokuapp.com/?lang=rus" \
+  | jq -r '.data[0] // empty' 2>/dev/null || echo "")
+if [ -z "$CAT_FACT" ]; then
+  CAT_FACT="Факт не загрузился, но коты всё равно замечательные. 🐱"
+fi
+
+TIP="$(pick "${TIPS[@]}")"
+
+echo "Joke: $JOKE"
+echo "Cat fact: $CAT_FACT"
+echo "Tip: $TIP"
+
 # --- Логика контента ---
 
 FOOTBALL="none"
@@ -212,13 +243,6 @@ fi
 
 case "$MODE" in
   morning)
-    # 1) Сначала получаем шутку. Если API лёг — используем запасную.
-    JOKE=$(curl -s --max-time 10 "https://rzhunemogu.ru/api/randjson?CType=1" \
-      | jq -r '.content // empty' 2>/dev/null || echo "")
-    if [ -z "$JOKE" ]; then
-      JOKE="Шутка не загрузилась, но это тоже своего рода шутка. 😄"
-    fi
-
     MSG="$(pick "${GREETINGS[@]}")
 Сегодня — ${BLOCK}."
 
@@ -247,22 +271,14 @@ $(pick "${BEER_OFF[@]}")"
 😄 <b>Шутка дня:</b>
 ${JOKE}
 
-$(pick "${TIPS[@]}")
+${TIP}
 
 <i>⏰ ${NOW_HHMMSS} МСК</i>"
 
-    send_message "${MSG}"
+    send_photo "https://cataas.com/cat" "${MSG}"
     ;;
 
-afternoon)
-    # Получаем факт о котах
-    CAT_FACT=$(curl -s --max-time 10 "https://meowfacts.herokuapp.com/?lang=rus" \
-      | jq -r '.data[0] // empty' 2>/dev/null || echo "")
-
-    if [ -z "$CAT_FACT" ]; then
-      CAT_FACT="Факт не загрузился, но коты всё равно замечательные. 🐱"
-    fi
-
+  afternoon)
     MSG="$(pick "${AFTERNOON_OPENER[@]}")"
 
     if [ "$IS_WORK_DAY" = "yes" ]; then
@@ -286,9 +302,14 @@ ${CAT_FACT}
 
 $(pick "${BEER_AFTERNOON[@]}")
 
+😄 <b>Шутка дня:</b>
+${JOKE}
+
+${TIP}
+
 <i>⏰ ${NOW_HHMMSS} МСК</i>"
 
-    send_message "${MSG}"
+    send_photo "https://cataas.com/cat" "${MSG}"
     ;;
 
   evening)
@@ -310,10 +331,13 @@ $(pick "${BEER_EVENING_OFF[@]}")"
 
 Завтра — ${TOMORROW}.${TOMORROW_FOOTBALL}
 
-$(pick "${TIPS[@]}")
+😄 <b>Шутка дня:</b>
+${JOKE}
+
+${TIP}
 
 <i>⏰ ${NOW_HHMMSS} МСК</i>${MONTH_END}"
 
-       send_photo "https://cataas.com/cat" "${MSG}"
+    send_photo "https://cataas.com/cat" "${MSG}"
     ;;
 esac
