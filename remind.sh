@@ -257,6 +257,17 @@ $(pick "${AFTERNOON_OFF[@]}")"
 ⚽ Сегодня футбол — не забудь форму."
     fi
 
+QUOTE_DATA=$(curl -s --max-time 10 "http://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=ru" || echo "")
+QUOTE_TEXT=$(echo "$QUOTE_DATA" | jq -r '.quoteText // empty')
+QUOTE_AUTHOR=$(echo "$QUOTE_DATA" | jq -r '.quoteAuthor // empty')
+
+if [ -z "$QUOTE_TEXT" ]; then
+  QUOTE_TEXT="Цитата не загрузилась, но день всё равно хороший. 😊"
+  QUOTE_AUTHOR=""
+else
+  QUOTE_AUTHOR=" — ${QUOTE_AUTHOR}"
+fi
+
     MSG="${MSG}
 
 $(pick "${BEER_AFTERNOON[@]}")
