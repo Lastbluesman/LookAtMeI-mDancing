@@ -254,7 +254,7 @@ $(pick "${TIPS[@]}")
     send_message "${MSG}"
     ;;
 
-    afternoon)
+afternoon)
     # Получаем факт о котах
     CAT_FACT=$(curl -s --max-time 10 "https://meowfacts.herokuapp.com/?lang=rus" \
       | jq -r '.data[0] // empty' 2>/dev/null || echo "")
@@ -314,6 +314,6 @@ $(pick "${TIPS[@]}")
 
 <i>⏰ ${NOW_HHMMSS} МСК</i>${MONTH_END}"
 
-       send_photo "https://cataas.com/cat" "${MSG}""
+       send_photo "https://cataas.com/cat" "${MSG}"
     ;;
 esac
