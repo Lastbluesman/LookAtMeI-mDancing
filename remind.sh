@@ -228,6 +228,23 @@ $(pick "${TIPS[@]}")
 <i>⏰ ${NOW_HHMMSS} МСК</i>"
 
     send_message "${MSG}"
+    JOKE=$(curl -s "https://v2.jokeapi.dev/joke/Any?lang=ru&type=single" | jq -r '.joke // empty')
+    
+    if [ -z "$JOKE" ]; then
+      JOKE="Шутка не загрузилась, но это тоже своего рода шутка. 😄"
+    fi
+
+    MSG="$(pick "${GREETINGS[@]}")
+Сегодня — ${BLOCK}."
+
+😄 <b>Шутка дня:</b>
+${JOKE}
+
+$(pick "${TIPS[@]}")
+
+<i>⏰ ${NOW_HHMMSS} МСК</i>"
+
+    send_message "${MSG}"
     ;;
 
   afternoon)
