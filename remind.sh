@@ -45,6 +45,20 @@ send_message() {
   done
 }
 
+send_photo() {
+  local photo_url="$1"
+  local caption="$2"
+  for cid in "${TELEGRAM_CHAT_ID}" "${TELEGRAM_TESTER_CHAT_ID}"; do
+    if [ -n "$cid" ]; then
+      curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto" \
+        -F "chat_id=${cid}" \
+        -F "photo=${photo_url}" \
+        -F "caption=${caption}" \
+        -F "parse_mode=HTML"
+    fi
+  done
+}
+
 pick() {
   local arr=("$@")
   echo "${arr[$((RANDOM % ${#arr[@]}))]}"
@@ -300,6 +314,6 @@ $(pick "${TIPS[@]}")
 
 <i>⏰ ${NOW_HHMMSS} МСК</i>${MONTH_END}"
 
-    send_message "${MSG}"
+       send_photo "https://cataas.com/cat" "${MSG}""
     ;;
 esac
