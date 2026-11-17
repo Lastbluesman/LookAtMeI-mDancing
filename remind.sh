@@ -239,7 +239,14 @@ else
   MONTH_END=""
 fi
 
-# --- Сборка ---
+CAT_ID=$(curl -s --max-time 10 "https://cataas.com/cat?json=true" \
+  | jq -r '._id // .id // empty' 2>/dev/null || echo "")
+if [ -n "$CAT_ID" ]; then
+  CAT_URL="https://cataas.com/cat/${CAT_ID}"
+else
+  CAT_URL="https://cataas.com/cat?r=${RANDOM}"   # fallback
+fi
+echo "Cat URL: $CAT_URL"
 
 case "$MODE" in
   morning)
@@ -275,7 +282,7 @@ ${TIP}
 
 <i>⏰ ${NOW_HHMMSS} МСК</i>"
 
-    send_photo "https://cataas.com/cat" "${MSG}"
+    send_photo "${CAT_URL}" "${MSG}"
     ;;
 
   afternoon)
@@ -309,7 +316,7 @@ ${TIP}
 
 <i>⏰ ${NOW_HHMMSS} МСК</i>"
 
-    send_photo "https://cataas.com/cat" "${MSG}"
+    send_photo "${CAT_URL}" "${MSG}"
     ;;
 
   evening)
@@ -338,6 +345,6 @@ ${TIP}
 
 <i>⏰ ${NOW_HHMMSS} МСК</i>${MONTH_END}"
 
-    send_photo "https://cataas.com/cat" "${MSG}"
+    send_photo "${CAT_URL}" "${MSG}"
     ;;
 esac
