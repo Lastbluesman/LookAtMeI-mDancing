@@ -198,6 +198,14 @@ fi
 
 case "$MODE" in
   morning)
+    # 1) Сначала получаем шутку. Если API лёг — используем запасную.
+    JOKE=$(curl -s --max-time 10 "https://v2.jokeapi.dev/joke/Any?lang=ru&type=single" \
+      | jq -r '.joke // empty' 2>/dev/null || echo "")
+    if [ -z "$JOKE" ]; then
+      JOKE="Шутка не загрузилась, но это тоже своего рода шутка. 😄"
+    fi
+
+    # 2) Теперь собираем одно полное сообщение — со всем
     MSG="$(pick "${GREETINGS[@]}")
 Сегодня — ${BLOCK}."
 
@@ -222,20 +230,6 @@ $(pick "${BEER_OFF[@]}")"
     fi
 
     MSG="${MSG}
-
-$(pick "${TIPS[@]}")
-
-<i>⏰ ${NOW_HHMMSS} МСК</i>"
-
-    send_message "${MSG}"
-    JOKE=$(curl -s "https://v2.jokeapi.dev/joke/Any?lang=ru&type=single" | jq -r '.joke // empty')
-    
-    if [ -z "$JOKE" ]; then
-      JOKE="Шутка не загрузилась, но это тоже своего рода шутка. 😄"
-    fi
-
-    MSG="$(pick "${GREETINGS[@]}")
-Сегодня — ${BLOCK}."
 
 😄 <b>Шутка дня:</b>
 ${JOKE}
