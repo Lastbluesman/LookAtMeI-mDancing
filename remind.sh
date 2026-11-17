@@ -240,7 +240,15 @@ $(pick "${TIPS[@]}")
     send_message "${MSG}"
     ;;
 
-  afternoon)
+    afternoon)
+    # Получаем факт о котах
+    CAT_FACT=$(curl -s --max-time 10 "https://meowfacts.herokuapp.com/?lang=rus" \
+      | jq -r '.data[0] // empty' 2>/dev/null || echo "")
+
+    if [ -z "$CAT_FACT" ]; then
+      CAT_FACT="Факт не загрузился, но коты всё равно замечательные. 🐱"
+    fi
+
     MSG="$(pick "${AFTERNOON_OPENER[@]}")"
 
     if [ "$IS_WORK_DAY" = "yes" ]; then
@@ -257,18 +265,10 @@ $(pick "${AFTERNOON_OFF[@]}")"
 ⚽ Сегодня футбол — не забудь форму."
     fi
 
-QUOTE_DATA=$(curl -s --max-time 10 "http://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=ru" || echo "")
-QUOTE_TEXT=$(echo "$QUOTE_DATA" | jq -r '.quoteText // empty')
-QUOTE_AUTHOR=$(echo "$QUOTE_DATA" | jq -r '.quoteAuthor // empty')
-
-if [ -z "$QUOTE_TEXT" ]; then
-  QUOTE_TEXT="Цитата не загрузилась, но день всё равно хороший. 😊"
-  QUOTE_AUTHOR=""
-else
-  QUOTE_AUTHOR=" — ${QUOTE_AUTHOR}"
-fi
-
     MSG="${MSG}
+
+🐱 <b>Факт дня:</b>
+${CAT_FACT}
 
 $(pick "${BEER_AFTERNOON[@]}")
 
