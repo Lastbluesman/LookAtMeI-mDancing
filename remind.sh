@@ -199,8 +199,8 @@ fi
 case "$MODE" in
   morning)
     # 1) Сначала получаем шутку. Если API лёг — используем запасную.
-    JOKE=$(curl -s --max-time 10 "http://rzhunemogu.ru/RandJSON.aspx?CType=1" \
-      | sed 's/\\r\\n/ /g; s/\\"/"/g; s/^.*"content":"//; s/"}//' || echo "")
+    JOKE=$(curl -s --max-time 10 "https://rzhunemogu.ru/api/randjson?CType=1" \
+      | jq -r '.content // empty' 2>/dev/null || echo "")
     if [ -z "$JOKE" ]; then
       JOKE="Шутка не загрузилась, но это тоже своего рода шутка. 😄"
     fi
