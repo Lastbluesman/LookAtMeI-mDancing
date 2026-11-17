@@ -205,7 +205,6 @@ case "$MODE" in
       JOKE="Шутка не загрузилась, но это тоже своего рода шутка. 😄"
     fi
 
-    # 2) Теперь собираем одно полное сообщение — со всем
     MSG="$(pick "${GREETINGS[@]}")
 Сегодня — ${BLOCK}."
 
@@ -259,6 +258,21 @@ $(pick "${AFTERNOON_OFF[@]}")"
     fi
 
     MSG="${MSG}
+
+$(pick "${BEER_AFTERNOON[@]}")
+
+<i>⏰ ${NOW_HHMMSS} МСК</i>"
+
+    send_message "${MSG}"
+
+    CAT_FACT=$(curl -s --max-time 10 "https://meowfacts.herokuapp.com/?lang=rus" \
+      | jq -r '.data[0] // empty' 2>/dev/null || echo "")
+    
+    if [ -z "$CAT_FACT" ]; then
+      CAT_FACT="Факт не загрузился, но коты всё равно замечательные. 🐱"
+    fi
+    🐱 <b>Факт дня:</b>
+${CAT_FACT}
 
 $(pick "${BEER_AFTERNOON[@]}")
 
